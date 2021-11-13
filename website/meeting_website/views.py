@@ -1,9 +1,11 @@
 from rest_framework import generics
 from rest_framework import permissions
 from .models import Participant
-from .serializers import ParticipantSerializer, ParticipantMatchSerializer
+from .serializers import ParticipantCreateSerializer, \
+    ParticipantMatchSerializer, ParticipantListSerializer
 from PIL import Image
 from django.core.mail import send_mail
+from django_filters import rest_framework as filters
 
 
 def send_mail_about_match(username, to_mail):
@@ -14,7 +16,9 @@ def send_mail_about_match(username, to_mail):
                      fail_silently=False)
 
 
-def watermark_with_transparency(input_image_path, input_image_url, watermark_image_path):
+def watermark_with_transparency(input_image_path,
+                                input_image_url,
+                                watermark_image_path):
     base_image = Image.open(input_image_path).convert('RGBA')
     watermark = Image.open(watermark_image_path)
     width, height = base_image.size
@@ -31,7 +35,7 @@ def watermark_with_transparency(input_image_path, input_image_url, watermark_ima
 class RegistrationParticipantView(generics.CreateAPIView):
 
     queryset = Participant.objects.all()
-    serializer_class = ParticipantSerializer
+    serializer_class = ParticipantCreateSerializer
     permission_classes = [permissions.AllowAny]
 
 
@@ -48,3 +52,13 @@ class ParticipantMatchView(generics.RetrieveUpdateAPIView):
         send_mail_about_match(possible_match.first_name, user.email)
         return possible_match
 
+
+class ParticipantListView(generics.ListAPIView):
+    serializer_class = ParticipantListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('age', 'first_name', 'last_name',)
+
+    def get_queryset(self):
+        user_id = self.request.user.id
+        return Participant.objects.all().exclude(id=user_id)

@@ -4,7 +4,7 @@ from . import views
 import os
 
 
-class ParticipantSerializer(serializers.ModelSerializer):
+class ParticipantCreateSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
@@ -60,3 +60,19 @@ class ParticipantMatchSerializer(serializers.ModelSerializer):
 
         fields = ['email']
         read_only_fields = ['email']
+
+
+class ParticipantListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Participant
+
+        fields = ['id',
+                  'avatar',
+                  'username',
+                  'gender',
+                  'age',
+                  'first_name',
+                  'last_name',
+                  'email',
+                  ]
