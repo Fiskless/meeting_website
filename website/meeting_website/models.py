@@ -8,9 +8,10 @@ class Participant(AbstractUser):
         ('MAN', 'Man'),
         ('WOMAN', 'Woman')]
 
-    avatar = models.ImageField('Avatar')
-    gender = models.CharField(max_length=5, choices=GENDER)
-    age = models.PositiveSmallIntegerField('Gender')
+    avatar = models.ImageField('Avatar',
+                               upload_to='partcipants_avatars')
+    gender = models.CharField('Gender', max_length=5, choices=GENDER)
+    age = models.PositiveSmallIntegerField('Age')
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
