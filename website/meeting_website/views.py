@@ -57,7 +57,7 @@ class ParticipantListView(generics.ListAPIView):
     serializer_class = ParticipantListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('age', 'first_name', 'last_name',)
+    filterset_fields = ('gender', 'first_name', 'last_name',)
 
     def get_queryset(self):
         user_id = self.request.user.id
