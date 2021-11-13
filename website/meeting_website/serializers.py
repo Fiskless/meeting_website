@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Participant
 from . import views
-from PIL import Image
 import os
 
 
@@ -52,3 +51,12 @@ class ParticipantSerializer(serializers.ModelSerializer):
         os.remove(image_path_before_watermark)
 
         return participant
+
+
+class ParticipantMatchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Participant
+
+        fields = ['email']
+        read_only_fields = ['email']
