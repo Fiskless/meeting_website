@@ -31,8 +31,13 @@ def watermark_with_transparency(input_image_path,
                                 input_image_url,
                                 watermark_image_path):
     base_image = Image.open(input_image_path).convert('RGBA')
-    watermark = Image.open(watermark_image_path)
     width, height = base_image.size
+
+    watermark = Image.open(watermark_image_path)
+    wpercent = ((width/2) / float(watermark.size[0]))
+    hsize = int((float(watermark.size[1]) * float(wpercent)))
+    watermark = watermark.resize((int(width/2), hsize), Image.ANTIALIAS)
+    watermark.save(watermark_image_path)
 
     transparent = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     transparent.paste(base_image, (0, 0))
@@ -65,7 +70,8 @@ class ParticipantMatchView(generics.RetrieveUpdateAPIView):
 
 
 class ParticipantFilter(filters.FilterSet):
-    max_distance = filters.CharFilter(method='get_max_distance', label='Max distance beetween users')
+    max_distance = filters.CharFilter(method='get_max_distance',
+                                      label='Max distance between users')
 
     def get_max_distance(self, queryset, name, value):
         all_users = Participant.objects.all()
