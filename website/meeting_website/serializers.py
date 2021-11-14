@@ -20,6 +20,8 @@ class ParticipantCreateSerializer(serializers.ModelSerializer):
                   'password',
                   'password2',
                   'email',
+                  'lat',
+                  'lon',
                   ]
 
     def create(self, *args, **kwargs):
@@ -37,6 +39,8 @@ class ParticipantCreateSerializer(serializers.ModelSerializer):
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],
             email=self.validated_data['email'],
+            lat=self.validated_data['lat'],
+            lon=self.validated_data['lon'],
             password=password
         )
 
@@ -75,4 +79,6 @@ class ParticipantListSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'email',
+                  'lat',
+                  'lon',
                   ]

@@ -6,6 +6,17 @@ from .serializers import ParticipantCreateSerializer, \
 from PIL import Image
 from django.core.mail import send_mail
 from django_filters import rest_framework as filters
+from geopy.distance import great_circle
+
+
+def get_distance_between_users(latitude_user,
+                 longitude_user,
+                 latitude_match,
+                 stop_longitude_match):
+    user = (latitude_user, longitude_user)
+    match = (latitude_match, stop_longitude_match)
+
+    return great_circle(user, match).kilometers
 
 
 def send_mail_about_match(username, to_mail):
@@ -53,11 +64,33 @@ class ParticipantMatchView(generics.RetrieveUpdateAPIView):
         return possible_match
 
 
+class ParticipantFilter(filters.FilterSet):
+    max_distance = filters.CharFilter(method='get_max_distance', label='Max distance beetween users')
+
+    def get_max_distance(self, queryset, name, value):
+        all_users = Participant.objects.all()
+        current_user = all_users.get(id=self.request.user.id)
+        participants = all_users.exclude(id=current_user.id)
+        participant_ids = []
+        for participant in participants:
+            distance = get_distance_between_users(
+                current_user.lat, current_user.lon,
+                participant.lat, participant.lon
+            )
+            if distance < float(value):
+               participant_ids.append(participant.id)
+        return participants.filter(id__in=participant_ids)
+
+    class Meta:
+        model = Participant
+        fields = ['gender', 'first_name', 'last_name', 'max_distance']
+
+
 class ParticipantListView(generics.ListAPIView):
     serializer_class = ParticipantListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('gender', 'first_name', 'last_name',)
+    filterset_class = ParticipantFilter
 
     def get_queryset(self):
         user_id = self.request.user.id
