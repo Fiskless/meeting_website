@@ -48,11 +48,13 @@ class ParticipantCreateSerializer(serializers.ModelSerializer):
 
         participant.avatar = views.watermark_with_transparency(
             participant.avatar.path,
-            participant.avatar.url,
-            'media/water_mark/wm.png',
+            participant.avatar.url
         )
         participant.save(update_fields=["avatar"])
-        os.remove(image_path_before_watermark)
+        _, ext_img = os.path.splitext(image_path_before_watermark)
+
+        if ext_img != '.png':
+            os.remove(image_path_before_watermark)
 
         return participant
 

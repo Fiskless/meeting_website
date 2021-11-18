@@ -10,18 +10,18 @@ from geopy.distance import great_circle
 
 
 def get_distance_between_users(latitude_user,
-                 longitude_user,
-                 latitude_match,
-                 stop_longitude_match):
+                               longitude_user,
+                               latitude_match,
+                               stop_longitude_match):
     user = (latitude_user, longitude_user)
     match = (latitude_match, stop_longitude_match)
 
     return great_circle(user, match).kilometers
 
 
-def send_mail_about_match(username, to_mail):
+def send_mail_about_match(username, match_mail, to_mail):
     return send_mail('У вас взаимная симпатия',
-                     f'Вы понравились {username}! Почта участника: {to_mail}',
+                     f'Вы понравились {username}! Почта участника: {match_mail}',
                      None,
                      [to_mail],
                      fail_silently=False)
@@ -29,7 +29,7 @@ def send_mail_about_match(username, to_mail):
 
 def watermark_with_transparency(input_image_path,
                                 input_image_url,
-                                watermark_image_path):
+                                watermark_image_path='static/water_mark/wm.png'):
     base_image = Image.open(input_image_path).convert('RGBA')
     width, height = base_image.size
 
@@ -63,15 +63,22 @@ class ParticipantMatchView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         user = Participant.objects.get(id=self.request.user.id)
         possible_match = Participant.objects.get(pk=self.kwargs['pk'])
-        user.match.add(possible_match)
-        send_mail_about_match(user.first_name, possible_match.email)
-        send_mail_about_match(possible_match.first_name, user.email)
-        return possible_match
+        user.likes_from_user.append(possible_match.id)
+        user.save()
+        if user.id in possible_match.likes_from_user:
+            user.match.add(possible_match)
+            user.likes_from_user.remove(possible_match.id)
+            user.save()
+            send_mail_about_match(user.first_name, user.email,
+                                  possible_match.email)
+            send_mail_about_match(possible_match.first_name,
+                                  possible_match.email, user.email)
+            return possible_match
 
 
 class ParticipantFilter(filters.FilterSet):
     max_distance = filters.CharFilter(method='get_max_distance',
-                                      label='Max distance between users')
+                                      label='Max distance between users(km)')
 
     def get_max_distance(self, queryset, name, value):
         all_users = Participant.objects.all()

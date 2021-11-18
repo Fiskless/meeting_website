@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
+from django.contrib.postgres.fields import ArrayField
 
 
 class Participant(AbstractUser):
@@ -14,6 +15,8 @@ class Participant(AbstractUser):
     gender = models.CharField('Gender', max_length=5, choices=GENDER)
     age = models.PositiveSmallIntegerField('Age',
                                            validators=[MinValueValidator(18)])
+    likes_from_user = ArrayField(models.IntegerField('You liked'),
+                                 null=True, blank=True, default=list)
     match = models.ManyToManyField('self',
                                    verbose_name='Match',
                                    related_name='matches',
@@ -21,7 +24,6 @@ class Participant(AbstractUser):
                                    null=True,
                                    blank=True,
                                    )
-
     lat = models.FloatField('Latitude',
                             max_length=20,
                             null=True,
